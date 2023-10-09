@@ -231,14 +231,14 @@ public:
 
 						//Define mesh of cells
 						CylindricalHoneycombMeshGenerator generator(cells_across, cells_up, ghost_rows);
-						Cylindrical2dMesh* p_mesh = generator.GetCylindricalMesh();
+						boost::shared_ptr<Cylindrical2dMesh> p_mesh = generator.GetCylindricalMesh();
 
 						//Obtain vector of non-ghost nodes to generate cell population
 						std::vector<unsigned> real_indices = generator.GetCellLocationIndices();
 
 						//Initialise vector of cells
 						std::vector<CellPtr> cells;
-						Generate2dCryptCells(cells, p_mesh, real_indices, crypt_height, true, is_tan);
+						Generate2dCryptCells(cells, p_mesh.get(), real_indices, crypt_height, true, is_tan);
 
 						//Create cell population
 						MeshBasedCellPopulationWithGhostNodes<2> cell_population(*p_mesh, cells, real_indices);

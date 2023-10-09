@@ -208,7 +208,7 @@ public:
 
 						//Define mesh of cells
 						CylindricalHoneycombMeshGenerator generator(cells_across, cells_up, ghost_rows);
-						Cylindrical2dMesh* p_mesh = generator.GetCylindricalMesh();
+						boost::shared_ptr<Cylindrical2dMesh> p_mesh = generator.GetCylindricalMesh();
 						
 						// Small perturbation to initial cells to avoid boundary artefact errors.
 						for (Cylindrical2dMesh::NodeIterator node_iter = p_mesh->GetNodeIteratorBegin();
@@ -241,7 +241,7 @@ public:
 
 						//Initialise vector of cells
 						std::vector<CellPtr> cells;
-						Generate2dCryptCells(cells, p_mesh, real_indices, crypt_height, true, is_tan);
+						Generate2dCryptCells(cells, p_mesh.get(), real_indices, crypt_height, true, is_tan);
 
 						//Create cell population
 						MeshBasedCellPopulationWithGhostNodes<2> cell_population(*p_mesh, cells, real_indices);
