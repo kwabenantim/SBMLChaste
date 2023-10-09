@@ -98,88 +98,110 @@ public:
         TS_ASSERT_DELTA(derivs[6], 0.0*60.0, 1e-5);
     }
 
-    void TestTanWithChasteSolver() throw(Exception)
+    void TestTanWithChasteSolver()
     {
-        Tan2014SbmlOdeSystem tan_system;
+        try
+        {
+            Tan2014SbmlOdeSystem tan_system;
 
-        // Solve system using RK4 solver
+            // Solve system using RK4 solver
 
-        double dt = 0.0001;
+            double dt = 0.0001;
 
-        //RK4 solver solution worked out
-        RungeKutta4IvpOdeSolver rk4_solver;
+            //RK4 solver solution worked out
+            RungeKutta4IvpOdeSolver rk4_solver;
 
-        std::vector<double> state_variables = tan_system.GetInitialConditions();
+            std::vector<double> state_variables = tan_system.GetInitialConditions();
 
-        Timer::Reset();
-        OdeSolution solutions = rk4_solver.Solve(&tan_system, state_variables, 0.0, 1000.0, dt, dt);
-        Timer::Print("1. Tan RK4");
-        
-        unsigned end = solutions.rGetSolutions().size() - 1;
+            Timer::Reset();
+            OdeSolution solutions = rk4_solver.Solve(&tan_system, state_variables, 0.0, 1000.0, dt, dt);
+            Timer::Print("1. Tan RK4");
+            
+            unsigned end = solutions.rGetSolutions().size() - 1;
 
-        // The following code provides nice output for gnuplot
-        // use the command
-        // plot "tan.dat" u 1:2
-        // or
-        // plot "tan.dat" u 1:3 etc. for the various proteins...
+            // The following code provides nice output for gnuplot
+            // use the command
+            // plot "tan.dat" u 1:2
+            // or
+            // plot "tan.dat" u 1:3 etc. for the various proteins...
 
-        // OutputFileHandler handler("");
-        // out_stream file=handler.OpenOutputFile("tan.dat");
-        // for (unsigned i=0; i<=end; i++)
-        // {
-        //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\n" << std::flush;
-        // }
-        // file->close();
+            // OutputFileHandler handler("");
+            // out_stream file=handler.OpenOutputFile("tan.dat");
+            // for (unsigned i=0; i<=end; i++)
+            // {
+            //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\n" << std::flush;
+            // }
+            // file->close();
 
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],80.123027932584804489124508108944, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],446.75578463039073540130630135536, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],553.24421536960869616450509056449, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],62.102819644032457802040880778804, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],359.76798287328375636207056231797, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],640.23201712671584573399741202593, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],1.0, 1e-5);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],80.123027932584804489124508108944, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],446.75578463039073540130630135536, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],553.24421536960869616450509056449, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],62.102819644032457802040880778804, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],359.76798287328375636207056231797, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],640.23201712671584573399741202593, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],1.0, 1e-5);
+        }
+        catch (Exception& e)
+        {
+            throw e;
+        }
+        catch (...)
+        {
+            exit(EXIT_FAILURE);
+        }
     }
 
- void TestTanWithCvodeSolver() throw(Exception)
+ void TestTanWithCvodeSolver()
     {
-        Tan2014SbmlOdeSystem ode_system;
+        try
+        {
+            Tan2014SbmlOdeSystem ode_system;
 
-        double end_time = 1000;
-        double h_value = 0.01;
+            double end_time = 1000;
+            double h_value = 0.01;
 
-        CvodeAdaptor solver;
-        OdeSolution solutions;
+            CvodeAdaptor solver;
+            OdeSolution solutions;
 
-        std::vector<double> state_variables = ode_system.GetInitialConditions();
-        
-        Timer::Reset();
-        solutions = solver.Solve(&ode_system, state_variables, 0.0, end_time, h_value, 0.1);
-        int last = solutions.GetNumberOfTimeSteps();
-        Timer::Print("1. Tan CVODE");
-        
-        unsigned end = solutions.rGetSolutions().size() - 1;
+            std::vector<double> state_variables = ode_system.GetInitialConditions();
+            
+            Timer::Reset();
+            solutions = solver.Solve(&ode_system, state_variables, 0.0, end_time, h_value, 0.1);
+            int last = solutions.GetNumberOfTimeSteps();
+            Timer::Print("1. Tan CVODE");
+            
+            unsigned end = solutions.rGetSolutions().size() - 1;
 
-        // The following code provides nice output for gnuplot
-        // use the command
-        // plot "tan.dat" u 1:2
-        // or
-        // plot "tan.dat" u 1:3 etc. for the various proteins...
+            // The following code provides nice output for gnuplot
+            // use the command
+            // plot "tan.dat" u 1:2
+            // or
+            // plot "tan.dat" u 1:3 etc. for the various proteins...
 
-        // OutputFileHandler handler("");
-        // out_stream file=handler.OpenOutputFile("tan.dat");
-        // for (unsigned i=0; i<=end; i++)
-        // {
-        //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\n" << std::flush;
-        // }
-        // file->close();
+            // OutputFileHandler handler("");
+            // out_stream file=handler.OpenOutputFile("tan.dat");
+            // for (unsigned i=0; i<=end; i++)
+            // {
+            //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\n" << std::flush;
+            // }
+            // file->close();
 
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],80.123027932584804489124508108944, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],446.75578463039073540130630135536, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],553.24421536960869616450509056449, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],62.102819644032457802040880778804, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],359.76798287328375636207056231797, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],640.23201712671584573399741202593, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],1.0, 1e-5);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],80.123027932584804489124508108944, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],446.75578463039073540130630135536, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],553.24421536960869616450509056449, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],62.102819644032457802040880778804, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],359.76798287328375636207056231797, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],640.23201712671584573399741202593, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],1.0, 1e-5);
+        }
+        catch (Exception& e)
+        {
+            throw e;
+        }
+        catch (...)
+        {
+            exit(EXIT_FAILURE);
+        }
     }
 
     void noTestArchiving()

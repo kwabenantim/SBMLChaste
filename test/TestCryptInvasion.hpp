@@ -157,252 +157,262 @@ private:
 
 public:
 
-	void TestCylindricalCryptWithMutantInvasion() throw (Exception)
+	void TestCylindricalCryptWithMutantInvasion()
 	{
-		//Command line argument stuff: Get the seed parameters
-		TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-run_index"));
-        unsigned start_index = CommandLineArguments::Instance()->GetUnsignedCorrespondingToOption("-run_index");
-		//unsigned start_index = 0;
-		
-		TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-num_runs"));
-        unsigned num_runs = CommandLineArguments::Instance()->GetUnsignedCorrespondingToOption("-num_runs");
-		
-
-		TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-is_tan"));
-        bool is_tan = CommandLineArguments::Instance()->GetBoolCorrespondingToOption("-is_tan");
-
-		TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-is_gamma_1"));
-        bool is_gamma_1 = CommandLineArguments::Instance()->GetBoolCorrespondingToOption("-is_gamma_1");
-
-		// unsigned start_index = 0;
-		// unsigned num_runs = 2;
-		// bool is_tan = true;
-		// bool is_gamma_1 = false;
-		
-		double time_to_steady_state = 100;
-		double max_time_post_mutation = 5000; 
-		double time_step = 0.005;
-
-		//Set simulation parameters
-		unsigned cells_across = 10; //10
-		unsigned cells_up = 20; //20
-		unsigned ghost_rows = 2;
-		unsigned max_num_cells = 4*cells_across*cells_up;
-
-		double crypt_height = 20.0; //20
-
-		unsigned num_gammas = 5;
-		double gammas[5] = {0.0,0.5,0.75,0.9,1};
-		double fraction_step = 0.5;
-
-        // Loop over the random seed.
-		for(unsigned sim_index=start_index; sim_index < start_index + num_runs; sim_index++)
-		{
-			std::cout << " Run number " << sim_index << "... \n" << std::flush;
-
-			// Reseed the random number generator
-			RandomNumberGenerator* p_gen = RandomNumberGenerator::Instance();
-			p_gen->Reseed(sim_index);
-
-			//Define mesh of cells
-			CylindricalHoneycombMeshGenerator generator(cells_across, cells_up, ghost_rows);
-			Cylindrical2dMesh* p_mesh = generator.GetCylindricalMesh();
-			
-			// Small perturbation to initial cells to avoid boundary artefact errors.
-			for (Cylindrical2dMesh::NodeIterator node_iter = p_mesh->GetNodeIteratorBegin();
-			node_iter != p_mesh->GetNodeIteratorEnd();
-			++node_iter)
-			{
-				// Only move real cells not ghost nodes
-				if (node_iter->GetIndex() >= cells_across*ghost_rows) 
-				{				
-					node_iter->rGetModifiableLocation()[0] += 1e-8*p_gen->StandardNormalRandomDeviate();
-					node_iter->rGetModifiableLocation()[1] += 1e-8*p_gen->StandardNormalRandomDeviate();
-
-					if(node_iter->rGetLocation()[0] < 0)
-					{
-						node_iter->rGetModifiableLocation()[0] =  0;
-					}
-					if(node_iter->rGetLocation()[0] > p_mesh->GetWidth(0) )
-					{
-						node_iter->rGetModifiableLocation()[0] =  p_mesh->GetWidth(0);
-					}
-					if(node_iter->rGetLocation()[1] < 0 )
-					{
-						node_iter->rGetModifiableLocation()[1] =  0;
-					}
-				}
-			}
-
-			//Obtain vector of non-ghost nodes to generate cell population
-			std::vector<unsigned> real_indices = generator.GetCellLocationIndices();
-
-			//Initialise vector of cells
-			std::vector<CellPtr> cells;
-			Generate2dCryptCells(cells, p_mesh, real_indices, crypt_height, true, is_tan);
-
-			//Create cell population
-			MeshBasedCellPopulationWithGhostNodes<2> cell_population(*p_mesh, cells, real_indices);
-
-			//Explicitly request output for Paraview
-			///cell_population.AddCellWriter<CellVolumesWriter>();
-			cell_population.AddCellWriter<CellLabelWriter>();
-			cell_population.AddCellWriter<CellIdWriter>();
-			cell_population.AddPopulationWriter<VoronoiDataWriter>();
-			//cell_population.AddPopulationWriter<CellPopulationMutantHeightWriter>();
-			//cell_population.AddPopulationWriter<CellPopulationProlifHeightWriter>();
-			cell_population.AddCellPopulationCountWriter<CellLabelCountWriter>();
-			cell_population.AddCellPopulationCountWriter<CellProliferativeTypesCountWriter>();
-
-			// Make cell data writer so can pass in variable name
-			if(is_tan)
-			{
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_1(new CellDataItemWriter<2,2>("bcat_cm"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_1);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_2(new CellDataItemWriter<2,2>("ligand_cm"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_2);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_3(new CellDataItemWriter<2,2>("complex_cm"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_3);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_4(new CellDataItemWriter<2,2>("bcat_nu"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_4);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_5(new CellDataItemWriter<2,2>("ligand_nu"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_5);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_6(new CellDataItemWriter<2,2>("complex_nu"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_6);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_10(new CellDataItemWriter<2,2>("gamma"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_10);
-			}
-			else 
-			{
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_1(new CellDataItemWriter<2,2>("C_F"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_1);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_2(new CellDataItemWriter<2,2>("C_u"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_2);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_3(new CellDataItemWriter<2,2>("C_A"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_3);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_4(new CellDataItemWriter<2,2>("C_T"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_4);
-
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_10(new CellDataItemWriter<2,2>("gamma1"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_10);
-				boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_11(new CellDataItemWriter<2,2>("gamma2"));
-				cell_population.AddCellWriter(p_cell_data_item_writer_11);
-			}
-
-			boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_8(new CellDataItemWriter<2,2>("wnt_level"));
-			cell_population.AddCellWriter(p_cell_data_item_writer_8);
-			boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_9(new CellDataItemWriter<2,2>("drag"));
-			cell_population.AddCellWriter(p_cell_data_item_writer_9);
-
-			//Define simulation class
-			OffLatticeSimulationWithMonoclonalStoppingEvent simulator(cell_population);
-			simulator.SetMaxNumCells(max_num_cells);
-			simulator.SetStartTime(time_to_steady_state);
-
-			//Add force class
-			MAKE_PTR(VariableDampingGeneralisedLinearSpringForce<2>, p_spring_force);
-			//MAKE_PTR(GeneralisedLinearSpringForce<2>, p_spring_force);
-			p_spring_force->SetCutOffLength(1.5); // Default value
-			p_spring_force->SetMeinekeSpringStiffness(50.0); // Usually 15
-			simulator.AddForce(p_spring_force);
-
-			//Add cell killer to slough cells at top of crypt
-			MAKE_PTR_ARGS(SloughingCellKiller<2>, p_killer, (&cell_population, crypt_height));
-			simulator.AddCellKiller(p_killer);
-
-			// Solid base boundary condition
-			MAKE_PTR_ARGS(PlaneBoundaryCondition<2>, p_bcs, (&cell_population, zero_vector<double>(2), -unit_vector<double>(2,1)));
-			p_bcs->SetUseJiggledNodesOnPlane(true);
-			simulator.AddCellPopulationBoundaryCondition(p_bcs);
-
-			//Add Wnt concentration modifier
-			MAKE_PTR(WntConcentrationModifier<2>, p_wnt_modifier);
-			p_wnt_modifier->SetType(LINEAR);
-			p_wnt_modifier->SetCryptLength(crypt_height);
-			simulator.AddSimulationModifier(p_wnt_modifier);
-
-			//Add modifier to track volume
-			// MAKE_PTR(VolumeTrackingModifier<2>, p_volume_modifier);
-			// simulator.AddSimulationModifier(p_volume_modifier);
-
-			//Simulation pre-amble
-			std::string main_directory = "SbmlCylindricalCryptInvasion/Tan/";
-			if (!is_tan)
-			{
-				if (is_gamma_1)
-				{
-					main_directory = "SbmlCylindricalCryptInvasion/VanLeeuwenGamma1/";
-				}
-				else
-				{
-					main_directory = "SbmlCylindricalCryptInvasion/VanLeeuwenGamma2/";
-				}
-			}
-
-			std::string steady_state_output_directory, output_directory;
-
-			std::stringstream out;
-			out << sim_index;
-			steady_state_output_directory = main_directory +  out.str() + "/SteadyState" ; 
-
-			simulator.SetOutputDirectory(steady_state_output_directory);
-			simulator.SetSamplingTimestepMultiple(20/time_step); //simulation output every 20 hours
-			simulator.SetEndTime(time_to_steady_state);
-			simulator.SetDt(time_step);
-
-			try
-			{
-				simulator.Solve();
-
-				// Save simulation in steady state
-				CellBasedSimulationArchiver<2, OffLatticeSimulationWithMonoclonalStoppingEvent>::Save(&simulator);
-
-				// loop over mutation_parameter 
-				for (unsigned gamma_index=0; gamma_index < num_gammas; gamma_index++)
-				{
-					std::cout << "\n Mutation Parameter " << gammas[gamma_index] << ", " << std::flush;
-				
-					// loop over % mutated  
-					for (double mutated_fraction=fraction_step; mutated_fraction < 1-0.001; mutated_fraction+=fraction_step)
-					{
-						std::cout << "Mutated Fraction " << mutated_fraction << "... " << std::flush;
+      try
+      {
+					//Command line argument stuff: Get the seed parameters
+					TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-run_index"));
+							unsigned start_index = CommandLineArguments::Instance()->GetUnsignedCorrespondingToOption("-run_index");
+					//unsigned start_index = 0;
 					
+					TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-num_runs"));
+							unsigned num_runs = CommandLineArguments::Instance()->GetUnsignedCorrespondingToOption("-num_runs");
+					
+
+					TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-is_tan"));
+							bool is_tan = CommandLineArguments::Instance()->GetBoolCorrespondingToOption("-is_tan");
+
+					TS_ASSERT(CommandLineArguments::Instance()->OptionExists("-is_gamma_1"));
+							bool is_gamma_1 = CommandLineArguments::Instance()->GetBoolCorrespondingToOption("-is_gamma_1");
+
+					// unsigned start_index = 0;
+					// unsigned num_runs = 2;
+					// bool is_tan = true;
+					// bool is_gamma_1 = false;
+					
+					double time_to_steady_state = 100;
+					double max_time_post_mutation = 5000; 
+					double time_step = 0.005;
+
+					//Set simulation parameters
+					unsigned cells_across = 10; //10
+					unsigned cells_up = 20; //20
+					unsigned ghost_rows = 2;
+					unsigned max_num_cells = 4*cells_across*cells_up;
+
+					double crypt_height = 20.0; //20
+
+					unsigned num_gammas = 5;
+					double gammas[5] = {0.0,0.5,0.75,0.9,1};
+					double fraction_step = 0.5;
+
+							// Loop over the random seed.
+					for(unsigned sim_index=start_index; sim_index < start_index + num_runs; sim_index++)
+					{
+						std::cout << " Run number " << sim_index << "... \n" << std::flush;
+
+						// Reseed the random number generator
+						RandomNumberGenerator* p_gen = RandomNumberGenerator::Instance();
+						p_gen->Reseed(sim_index);
+
+						//Define mesh of cells
+						CylindricalHoneycombMeshGenerator generator(cells_across, cells_up, ghost_rows);
+						Cylindrical2dMesh* p_mesh = generator.GetCylindricalMesh();
+						
+						// Small perturbation to initial cells to avoid boundary artefact errors.
+						for (Cylindrical2dMesh::NodeIterator node_iter = p_mesh->GetNodeIteratorBegin();
+						node_iter != p_mesh->GetNodeIteratorEnd();
+						++node_iter)
+						{
+							// Only move real cells not ghost nodes
+							if (node_iter->GetIndex() >= cells_across*ghost_rows) 
+							{				
+								node_iter->rGetModifiableLocation()[0] += 1e-8*p_gen->StandardNormalRandomDeviate();
+								node_iter->rGetModifiableLocation()[1] += 1e-8*p_gen->StandardNormalRandomDeviate();
+
+								if(node_iter->rGetLocation()[0] < 0)
+								{
+									node_iter->rGetModifiableLocation()[0] =  0;
+								}
+								if(node_iter->rGetLocation()[0] > p_mesh->GetWidth(0) )
+								{
+									node_iter->rGetModifiableLocation()[0] =  p_mesh->GetWidth(0);
+								}
+								if(node_iter->rGetLocation()[1] < 0 )
+								{
+									node_iter->rGetModifiableLocation()[1] =  0;
+								}
+							}
+						}
+
+						//Obtain vector of non-ghost nodes to generate cell population
+						std::vector<unsigned> real_indices = generator.GetCellLocationIndices();
+
+						//Initialise vector of cells
+						std::vector<CellPtr> cells;
+						Generate2dCryptCells(cells, p_mesh, real_indices, crypt_height, true, is_tan);
+
+						//Create cell population
+						MeshBasedCellPopulationWithGhostNodes<2> cell_population(*p_mesh, cells, real_indices);
+
+						//Explicitly request output for Paraview
+						///cell_population.AddCellWriter<CellVolumesWriter>();
+						cell_population.AddCellWriter<CellLabelWriter>();
+						cell_population.AddCellWriter<CellIdWriter>();
+						cell_population.AddPopulationWriter<VoronoiDataWriter>();
+						//cell_population.AddPopulationWriter<CellPopulationMutantHeightWriter>();
+						//cell_population.AddPopulationWriter<CellPopulationProlifHeightWriter>();
+						cell_population.AddCellPopulationCountWriter<CellLabelCountWriter>();
+						cell_population.AddCellPopulationCountWriter<CellProliferativeTypesCountWriter>();
+
+						// Make cell data writer so can pass in variable name
+						if(is_tan)
+						{
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_1(new CellDataItemWriter<2,2>("bcat_cm"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_1);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_2(new CellDataItemWriter<2,2>("ligand_cm"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_2);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_3(new CellDataItemWriter<2,2>("complex_cm"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_3);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_4(new CellDataItemWriter<2,2>("bcat_nu"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_4);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_5(new CellDataItemWriter<2,2>("ligand_nu"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_5);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_6(new CellDataItemWriter<2,2>("complex_nu"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_6);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_10(new CellDataItemWriter<2,2>("gamma"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_10);
+						}
+						else 
+						{
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_1(new CellDataItemWriter<2,2>("C_F"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_1);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_2(new CellDataItemWriter<2,2>("C_u"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_2);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_3(new CellDataItemWriter<2,2>("C_A"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_3);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_4(new CellDataItemWriter<2,2>("C_T"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_4);
+
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_10(new CellDataItemWriter<2,2>("gamma1"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_10);
+							boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_11(new CellDataItemWriter<2,2>("gamma2"));
+							cell_population.AddCellWriter(p_cell_data_item_writer_11);
+						}
+
+						boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_8(new CellDataItemWriter<2,2>("wnt_level"));
+						cell_population.AddCellWriter(p_cell_data_item_writer_8);
+						boost::shared_ptr<CellDataItemWriter<2,2> > p_cell_data_item_writer_9(new CellDataItemWriter<2,2>("drag"));
+						cell_population.AddCellWriter(p_cell_data_item_writer_9);
+
+						//Define simulation class
+						OffLatticeSimulationWithMonoclonalStoppingEvent simulator(cell_population);
+						simulator.SetMaxNumCells(max_num_cells);
+						simulator.SetStartTime(time_to_steady_state);
+
+						//Add force class
+						MAKE_PTR(VariableDampingGeneralisedLinearSpringForce<2>, p_spring_force);
+						//MAKE_PTR(GeneralisedLinearSpringForce<2>, p_spring_force);
+						p_spring_force->SetCutOffLength(1.5); // Default value
+						p_spring_force->SetMeinekeSpringStiffness(50.0); // Usually 15
+						simulator.AddForce(p_spring_force);
+
+						//Add cell killer to slough cells at top of crypt
+						MAKE_PTR_ARGS(SloughingCellKiller<2>, p_killer, (&cell_population, crypt_height));
+						simulator.AddCellKiller(p_killer);
+
+						// Solid base boundary condition
+						MAKE_PTR_ARGS(PlaneBoundaryCondition<2>, p_bcs, (&cell_population, zero_vector<double>(2), -unit_vector<double>(2,1)));
+						p_bcs->SetUseJiggledNodesOnPlane(true);
+						simulator.AddCellPopulationBoundaryCondition(p_bcs);
+
+						//Add Wnt concentration modifier
+						MAKE_PTR(WntConcentrationModifier<2>, p_wnt_modifier);
+						p_wnt_modifier->SetType(LINEAR);
+						p_wnt_modifier->SetCryptLength(crypt_height);
+						simulator.AddSimulationModifier(p_wnt_modifier);
+
+						//Add modifier to track volume
+						// MAKE_PTR(VolumeTrackingModifier<2>, p_volume_modifier);
+						// simulator.AddSimulationModifier(p_volume_modifier);
+
+						//Simulation pre-amble
+						std::string main_directory = "SbmlCylindricalCryptInvasion/Tan/";
+						if (!is_tan)
+						{
+							if (is_gamma_1)
+							{
+								main_directory = "SbmlCylindricalCryptInvasion/VanLeeuwenGamma1/";
+							}
+							else
+							{
+								main_directory = "SbmlCylindricalCryptInvasion/VanLeeuwenGamma2/";
+							}
+						}
+
+						std::string steady_state_output_directory, output_directory;
+
 						std::stringstream out;
-						out << sim_index << "/MutationParameter_"<< gammas[gamma_index] << "/Fraction_" << mutated_fraction;
-						
-						output_directory = main_directory +  out.str(); 
+						out << sim_index;
+						steady_state_output_directory = main_directory +  out.str() + "/SteadyState" ; 
 
-						OffLatticeSimulationWithMonoclonalStoppingEvent* p_simulator = CellBasedSimulationArchiver<2, OffLatticeSimulationWithMonoclonalStoppingEvent>::Load(steady_state_output_directory,time_to_steady_state);
+						simulator.SetOutputDirectory(steady_state_output_directory);
+						simulator.SetSamplingTimestepMultiple(20/time_step); //simulation output every 20 hours
+						simulator.SetEndTime(time_to_steady_state);
+						simulator.SetDt(time_step);
 
-						// now pick a selection of cells to mutate
-						boost::shared_ptr<AbstractCellProperty> p_state(CellPropertyRegistry::Instance()->Get<CellLabel>());
-						MutateCells(p_simulator->rGetCellPopulation(),p_state, mutated_fraction,gammas[gamma_index], is_tan, is_gamma_1);
-
-						p_simulator->SetOutputDirectory(output_directory);
-						p_simulator->SetEndTime(max_time_post_mutation+time_to_steady_state);
-						
 						try
 						{
-							p_simulator->Solve();
+							simulator.Solve();
+
+							// Save simulation in steady state
+							CellBasedSimulationArchiver<2, OffLatticeSimulationWithMonoclonalStoppingEvent>::Save(&simulator);
+
+							// loop over mutation_parameter 
+							for (unsigned gamma_index=0; gamma_index < num_gammas; gamma_index++)
+							{
+								std::cout << "\n Mutation Parameter " << gammas[gamma_index] << ", " << std::flush;
+							
+								// loop over % mutated  
+								for (double mutated_fraction=fraction_step; mutated_fraction < 1-0.001; mutated_fraction+=fraction_step)
+								{
+									std::cout << "Mutated Fraction " << mutated_fraction << "... " << std::flush;
+								
+									std::stringstream out;
+									out << sim_index << "/MutationParameter_"<< gammas[gamma_index] << "/Fraction_" << mutated_fraction;
+									
+									output_directory = main_directory +  out.str(); 
+
+									OffLatticeSimulationWithMonoclonalStoppingEvent* p_simulator = CellBasedSimulationArchiver<2, OffLatticeSimulationWithMonoclonalStoppingEvent>::Load(steady_state_output_directory,time_to_steady_state);
+
+									// now pick a selection of cells to mutate
+									boost::shared_ptr<AbstractCellProperty> p_state(CellPropertyRegistry::Instance()->Get<CellLabel>());
+									MutateCells(p_simulator->rGetCellPopulation(),p_state, mutated_fraction,gammas[gamma_index], is_tan, is_gamma_1);
+
+									p_simulator->SetOutputDirectory(output_directory);
+									p_simulator->SetEndTime(max_time_post_mutation+time_to_steady_state);
+									
+									try
+									{
+										p_simulator->Solve();
+									}
+									catch (Exception& e)
+									{
+										std::cout << "\n Aborted due to large forces \n" << std::flush;
+									}
+									delete p_simulator;
+								}
+							}
 						}
 						catch (Exception& e)
 						{
-							std::cout << "\n Aborted due to large forces \n" << std::flush;
+							std::cout << "\n Aborted due to fail in steady state \n" << std::flush;
 						}
-						delete p_simulator;
-					}
+						
+						
+						// Extra Gubbins to get to loop: this is usually done by the SetUp and TearDown methods
+						SimulationTime::Instance()->Destroy();
+						SimulationTime::Instance()->SetStartTime(0.0);
 				}
-			}
-			catch (Exception& e)
-			{
-				std::cout << "\n Aborted due to fail in steady state \n" << std::flush;
-			}
-			
-			
-			// Extra Gubbins to get to loop: this is usually done by the SetUp and TearDown methods
-			SimulationTime::Instance()->Destroy();
-			SimulationTime::Instance()->SetStartTime(0.0);
-		}
+				catch (Exception& e)
+				{
+            throw e;
+				}
+        catch (...)
+        {
+            exit(EXIT_FAILURE);
+        }
 	}
 };
 #endif /* TESTCRYPTINVASIONWITHTANSRNMODEL_HPP_ */

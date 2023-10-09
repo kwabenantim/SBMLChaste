@@ -102,101 +102,123 @@ public:
 
     }
 
-    void TestVanLeeuwenWithChasteSolver() throw(Exception)
+    void TestVanLeeuwenWithChasteSolver()
     {
-        VanLeeuwen2007OdeSystem VanLeeuwen_system;
+        try
+        {
+            VanLeeuwen2007OdeSystem VanLeeuwen_system;
 
-        // Solve system using RK4 solver
+            // Solve system using RK4 solver
 
-        double dt = 0.0001;
+            double dt = 0.0001;
 
-        //RK4 solver solution worked out
-        RungeKutta4IvpOdeSolver rk4_solver;
+            //RK4 solver solution worked out
+            RungeKutta4IvpOdeSolver rk4_solver;
 
-        std::vector<double> state_variables = VanLeeuwen_system.GetInitialConditions();
+            std::vector<double> state_variables = VanLeeuwen_system.GetInitialConditions();
 
-        Timer::Reset();
-        OdeSolution solutions = rk4_solver.Solve(&VanLeeuwen_system, state_variables, 0.0, 10.0, dt, dt);
-        Timer::Print("1. VanLeeuwen RK4");
-        
-        unsigned end = solutions.rGetSolutions().size() - 1;
+            Timer::Reset();
+            OdeSolution solutions = rk4_solver.Solve(&VanLeeuwen_system, state_variables, 0.0, 10.0, dt, dt);
+            Timer::Print("1. VanLeeuwen RK4");
+            
+            unsigned end = solutions.rGetSolutions().size() - 1;
 
-        // The following code provides nice output for gnuplot
-        // use the command
-        // plot "VanLeeuwen.dat" u 1:2
-        // or
-        // plot "VanLeeuwen.dat" u 1:3 etc. for the various proteins...
+            // The following code provides nice output for gnuplot
+            // use the command
+            // plot "VanLeeuwen.dat" u 1:2
+            // or
+            // plot "VanLeeuwen.dat" u 1:3 etc. for the various proteins...
 
-        // OutputFileHandler handler("");
-        // out_stream file=handler.OpenOutputFile("VanLeeuwen.dat");
-        // for (unsigned i=0; i<=end; i++)
-        // {
-        //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\t" << solutions.rGetSolutions()[i][6] << "\t" << solutions.rGetSolutions()[i][7] << "\t" << solutions.rGetSolutions()[i][8] << "\t" << solutions.rGetSolutions()[i][9] << "\t" << solutions.rGetSolutions()[i][10] << "\n" << std::flush;
-        // }
-        // file->close();
+            // OutputFileHandler handler("");
+            // out_stream file=handler.OpenOutputFile("VanLeeuwen.dat");
+            // for (unsigned i=0; i<=end; i++)
+            // {
+            //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\t" << solutions.rGetSolutions()[i][6] << "\t" << solutions.rGetSolutions()[i][7] << "\t" << solutions.rGetSolutions()[i][8] << "\t" << solutions.rGetSolutions()[i][9] << "\t" << solutions.rGetSolutions()[i][10] << "\n" << std::flush;
+            // }
+            // file->close();
 
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],0.067, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],0.67, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],2.54, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],0.45, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],0.0, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],10.0, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],18.14, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][7],25.0, 1e-3);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][8],2.54, 1e-3);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][9],0.0, 1e-5);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][10],0.48, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][11],2.54, 1e-3);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][12],2.54, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],0.067, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],0.67, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],2.54, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],0.45, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],0.0, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],10.0, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],18.14, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][7],25.0, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][8],2.54, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][9],0.0, 1e-5);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][10],0.48, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][11],2.54, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][12],2.54, 1e-3);
+        }
+        catch (Exception& e)
+        {
+            throw e;
+        }
+        catch (...)
+        {
+            exit(EXIT_FAILURE);
+        }
 
     }
 
- void TestVanLeeuwenWithCvodeSolver() throw(Exception)
+ void TestVanLeeuwenWithCvodeSolver()
     {
-        VanLeeuwen2007OdeSystem ode_system;
+        try
+        {
+            VanLeeuwen2007OdeSystem ode_system;
 
-        double end_time = 1000;
-        double h_value = 0.01;
+            double end_time = 1000;
+            double h_value = 0.01;
 
-        CvodeAdaptor solver;
-        OdeSolution solutions;
+            CvodeAdaptor solver;
+            OdeSolution solutions;
 
-        std::vector<double> state_variables = ode_system.GetInitialConditions();
-        
-        Timer::Reset();
-        solutions = solver.Solve(&ode_system, state_variables, 0.0, end_time, h_value, 0.1);
-        int last = solutions.GetNumberOfTimeSteps();
-        Timer::Print("1. VanLeeuwen CVODE");
-        
-        unsigned end = solutions.rGetSolutions().size() - 1;
+            std::vector<double> state_variables = ode_system.GetInitialConditions();
+            
+            Timer::Reset();
+            solutions = solver.Solve(&ode_system, state_variables, 0.0, end_time, h_value, 0.1);
+            int last = solutions.GetNumberOfTimeSteps();
+            Timer::Print("1. VanLeeuwen CVODE");
+            
+            unsigned end = solutions.rGetSolutions().size() - 1;
 
-        // The following code provides nice output for gnuplot
-        // use the command
-        // plot "VanLeeuwen.dat" u 1:2
-        // or
-        // plot "VanLeeuwen.dat" u 1:3 etc. for the various proteins...
+            // The following code provides nice output for gnuplot
+            // use the command
+            // plot "VanLeeuwen.dat" u 1:2
+            // or
+            // plot "VanLeeuwen.dat" u 1:3 etc. for the various proteins...
 
-        // OutputFileHandler handler("");
-        // out_stream file=handler.OpenOutputFile("VanLeeuwen.dat");
-        // for (unsigned i=0; i<=end; i++)
-        // {
-        //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\n" << std::flush;
-        // }
-        // file->close();
+            // OutputFileHandler handler("");
+            // out_stream file=handler.OpenOutputFile("VanLeeuwen.dat");
+            // for (unsigned i=0; i<=end; i++)
+            // {
+            //     (*file) << solutions.rGetTimes()[i]<< "\t" << solutions.rGetSolutions()[i][0] << "\t" << solutions.rGetSolutions()[i][1] << "\t" << solutions.rGetSolutions()[i][2] << "\t" << solutions.rGetSolutions()[i][3] << "\t" << solutions.rGetSolutions()[i][4] << "\t" << solutions.rGetSolutions()[i][5] << "\n" << std::flush;
+            // }
+            // file->close();
 
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],0.067, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],0.67, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],2.54, 1e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],0.45, 2e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],0.0, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],10.0, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],18.14, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][7],25.0, 1e-3);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][8],2.54, 1e-3);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][9],0.0, 1e-5);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][10],0.48, 5e-2);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][11],2.54, 1e-3);
-        TS_ASSERT_DELTA(solutions.rGetSolutions()[end][12],2.54, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][0],0.067, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][1],0.67, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][2],2.54, 1e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][3],0.45, 2e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][4],0.0, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][5],10.0, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][6],18.14, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][7],25.0, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][8],2.54, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][9],0.0, 1e-5);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][10],0.48, 5e-2);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][11],2.54, 1e-3);
+            TS_ASSERT_DELTA(solutions.rGetSolutions()[end][12],2.54, 1e-3);
+        }
+        catch (Exception& e)
+        {
+            throw e;
+        }
+        catch (...)
+        {
+            exit(EXIT_FAILURE);
+        }
 
     }
 
