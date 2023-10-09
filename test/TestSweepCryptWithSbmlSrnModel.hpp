@@ -402,14 +402,14 @@ public:
 						SimulationTime::Instance()->Destroy();
 						SimulationTime::Instance()->SetStartTime(0.0);
         }
-        catch (Exception& e)
-        {
-            throw e;
-        }
-        catch (...)
-        {
-            exit(EXIT_FAILURE);
-        }
+		}
+		catch (Exception& e)
+		{
+				throw e;
+		}
+		catch (...)
+		{
+				exit(EXIT_FAILURE);
 		}
 	}
 };
