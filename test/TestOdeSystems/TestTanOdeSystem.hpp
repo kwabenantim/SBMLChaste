@@ -167,7 +167,6 @@ public:
             
             Timer::Reset();
             solutions = solver.Solve(&ode_system, state_variables, 0.0, end_time, h_value, 0.1);
-            int last = solutions.GetNumberOfTimeSteps();
             Timer::Print("1. Tan CVODE");
             
             unsigned end = solutions.rGetSolutions().size() - 1;

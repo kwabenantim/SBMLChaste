@@ -69,8 +69,6 @@ private:
 	{
 	    rCells.clear();
 
-	    RandomNumberGenerator* p_random_num_gen = RandomNumberGenerator::Instance();
-
         //Define the mutation states and cell proliferative types
 		boost::shared_ptr<AbstractCellProperty> p_wildtype_state = CellPropertyRegistry::Instance()->Get<WildTypeCellMutationState>();
 		boost::shared_ptr<AbstractCellProperty> p_transit_type = CellPropertyRegistry::Instance()->Get<TransitCellProliferativeType>();
@@ -92,13 +90,6 @@ private:
 			{
 				p_srn_model = new VanLeeuwen2007SrnModel;
 			}
-
-	        double birth_time = 0.0;
-	        if(randomBirthTimes)
-	        {
-	            birth_time = -p_random_num_gen->ranf();
-	        }
-
 	        // Create a cell
 	        CellPtr p_cell(new Cell(p_wildtype_state, p_cell_cycle_model,p_srn_model));
 
